@@ -9,6 +9,7 @@ using TaskManager.API.Data;
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 
+
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
