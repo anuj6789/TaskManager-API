@@ -9,17 +9,11 @@ var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddCors(options =>
+builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy =>
-                      {
-                          policy.WithOrigins("http://127.0.0.1:5500") // The address of your Live Server
-                                .AllowAnyHeader()
-                                .AllowAnyMethod();
-                      });
+    // Use Npgsql for PostgreSQL instead of UseSqlServer
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-
 
 builder.Services.AddControllers();
 
