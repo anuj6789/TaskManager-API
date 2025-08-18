@@ -12,7 +12,7 @@ using TaskManager.API.Data;
 namespace TaskManager.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250818180614_InitialPostgresCreate")]
+    [Migration("20250818185039_InitialPostgresCreate")]
     partial class InitialPostgresCreate
     {
         /// <inheritdoc />

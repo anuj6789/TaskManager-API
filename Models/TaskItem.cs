@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization; // Make sure this line is here
+using System.Text.Json.Serialization;
 
 namespace TaskManager.API.Models
 {
@@ -13,7 +13,7 @@ namespace TaskManager.API.Models
 
         public int UserId { get; set; }
         [ForeignKey("UserId")]
-        [JsonIgnore] // Make sure this line is here
+        [JsonIgnore]
         public User User { get; set; }
     }
 }

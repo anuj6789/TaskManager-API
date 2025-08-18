@@ -1,25 +1,39 @@
+// IMPORTANT: This line is required for PostgreSQL to handle date/time correctly.
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using TaskManager.API.Data;
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddDbContext<DataContext>(options =>
+// Add CORS policy
+builder.Services.AddCors(options =>
 {
-    // Use Npgsql for PostgreSQL instead of UseSqlServer
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                      });
 });
+
+
+// Add services to the container.
 
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    // Use this line for PostgreSQL
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 
@@ -49,7 +63,6 @@ builder.Services.AddSwaggerGen(options => {
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey
     });
-    // This part is new - it tells swagger to actually use the security definition
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -77,9 +90,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Use CORS
 app.UseCors(MyAllowSpecificOrigins);
 
-// 3. IMPORTANT: The order of these two lines is critical
+// IMPORTANT: The order of these two lines is critical
 app.UseAuthentication();
 app.UseAuthorization();
 
