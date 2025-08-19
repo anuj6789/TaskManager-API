@@ -8,26 +8,25 @@ using TaskManager.API.Data;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-
-
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add CORS policy
+// Add services to the container.
+
+// --- Updated CORS policy for production ---
+// This is now more flexible and will allow your deployed frontend to access the API.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500")
+                          policy.AllowAnyOrigin() // Allows any domain to access your API
                                 .AllowAnyHeader()
                                 .AllowAnyMethod();
                       });
 });
 
-
-// Add services to the container.
 
 builder.Services.AddControllers();
 
@@ -83,6 +82,25 @@ builder.Services.AddSwaggerGen(options => {
 
 var app = builder.Build();
 
+// --- NEW: Automatically apply database migrations on startup ---
+// This code will run your EF Core migrations when the app starts.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var dbContext = services.GetRequiredService<DataContext>();
+        await dbContext.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        // It's good practice to log any errors that occur during migration.
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred during database migration.");
+    }
+}
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -90,7 +108,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// We don't typically use HttpsRedirection in a container behind a reverse proxy like Render.
+// app.UseHttpsRedirection();
 
 // Use CORS
 app.UseCors(MyAllowSpecificOrigins);
@@ -101,5 +120,11 @@ app.UseAuthorization();
 
 
 app.MapControllers();
+app.MapControllers();
+
+// Add this line for Render's health check
+app.MapGet("/", () => "Task Manager API is running!");
+
+app.Run();
 
 app.Run();
