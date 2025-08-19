@@ -15,13 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 // --- Updated CORS policy for production ---
-// This is now more flexible and will allow your deployed frontend to access the API.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.AllowAnyOrigin() // Allows any domain to access your API
+                          // This now allows requests ONLY from your Vercel frontend
+                          policy.WithOrigins("https://task-manager-frontend-seven-jet.vercel.app")
                                 .AllowAnyHeader()
                                 .AllowAnyMethod();
                       });
@@ -108,9 +108,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// We don't typically use HttpsRedirection in a container behind a reverse proxy like Render.
-// app.UseHttpsRedirection();
-
 // Use CORS
 app.UseCors(MyAllowSpecificOrigins);
 
@@ -120,11 +117,8 @@ app.UseAuthorization();
 
 
 app.MapControllers();
-app.MapControllers();
 
 // Add this line for Render's health check
 app.MapGet("/", () => "Task Manager API is running!");
-
-app.Run();
 
 app.Run();
